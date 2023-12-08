@@ -1,0 +1,292 @@
+---
+title: "Regression on Realestate.csv dataset"
+author: "18682713, Thi Kim Truong"
+output:
+  word_document: default
+  pdf_document: default
+  
+date: "2023-08-25"
+---
+
+Declaration 
+
+By including this statement, we the authors of this work, verify that:
+
+* I hereby certify that no part of this assignment/product has been copied from any other student’s work or from any other source except where due acknowledgement is made in the assignment.
+
+* No part of this assignment/product has been written/produced for us by another person except where such collaboration has been authorised by the subject lecturer/tutor concerned.
+
+* I am aware that this work may be reproduced and submitted to plagiarism detection software programs for the purpose of detecting possible plagiarism (which may retain a copy on its database for future plagiarism checking).
+
+* I hereby certify that we have read and understand what the School of Computer, Data and Mathematical Sciences defines as minor and substantial breaches of misconduct as outlined in the learning guide for this unit. 
+
+--- 
+
+##### Question 1 - Import the dataset and explore (Identify the types of variables, number of observations and view first few rows).
+
+```{r}
+realestate <- read.csv("Realestate.csv")
+names(realestate)
+attach(realestate)
+dim(realestate)
+```
+
+There are 413 observations with 5 variables in the data set. The five variables age, convstore, distanceMRT, price and year.
+
+---
+
+##### Question 2 - Construct the matrix plot and correlation matrix. Comment on the relationship among variables.
+```{r}
+#correlation matrix
+cor_data = cor(realestate)
+print("Correlation matrix")
+print(cor_data)
+corrplot(cor_data, method = "circle")
+```
+
+  * There seems to be a strong linear relationship in price & convstore.
+  
+  * However price and age, seems to indicate a weaker liner relationship.
+  
+  * Distance and age, have a weak relationship.
+
+Correlations
+
+* Age & distanceMRT - a very weak postive correlation. Age & year - a very weak negative correlation
+
+* Age & convstore - a very weak postive correlation. Age & Price - a very weak negative correlation.
+
+* Age & year, Age & distanceMRT, Age & convstore, Age & Price have little of no linear relationship.
+
+* Year & distanceMRT - a very weak negative correlation. Almost having little to zero linear relationship.
+
+* year & convstore - a very weak postive correlation. year & price - a very weak positive correlation.
+
+* distanceMRT & convstore - Have a moderate negative correlation, having a postive linear relationship.
+
+* distanceMRT & price - Have a moderate negative correlation, having a postive linear relationship.
+
+* convstore & price - indicates a moderate postive correlation, indicating there is a postive linear relationship, but only moderate
+
+##### Question 3 - Simple Linear Regression
+
+
+###### i. Fit a model to predict price in terms of distanceMRT.
+
+```{r}
+model1 <- lm(price ~ distanceMRT, data = realestate)
+summary(model1)
+```
+--- 
+
+###### ii. Test the significance of the slope parameter (Write down the relevant hypothesis).
+
+H0: βdistanceMRT = 0, the distance to the nearest metro rail transit (in meters) has no effect on the house price of unit area.
+Ha: βdistanceMRT NOT equal 0, the distance to the nearest metro rail transit (in meters) has an effect on the house price of unit area.
+
+The model summary concluded a p-value of <2e-16, which is smaller than our 5% significance level. A small p value, allows us to reject the null hypothesis, and suggest that distance to the nearest metro rail transit, does have a significant effect on the house price of unit area. 
+
+--- 
+
+###### iii. Interpret the slope and the intercept.
+
+* Intercept - The intercept is the value of the dependent variable, which in our case is price. The intercept is 4419.13375, meaning that when the value for distanceMRT is at zero, the expected price is 4419.13. 
+* Slope - The slope co-efficient for the variable distance is -0.69516. As there is a one-unit(meters) increase in distance from metro rail transit, the house price per unit area is estimated to decreased by 0.69516. The negative slope co-efficient indicates a negative linear relationship. 
+
+--- 
+
+###### iv. Discuss the accuracy of the parameter estimates (standard errors/confidence intervals).
+
+Based on the model1 summary output,
+* Standard errors of the estimates: 
+  * On average, the estimated intercept value(α), may differ from the actual value by approximately 59.20875 units.
+  * On average, the estimated value(β) for the slope parameter, may differ from the true value by approximately 0.03557 units.
+
+```{r}
+CI_level <- confint(model1)
+CI_level
+```
+
+
+95% Confidence interval for α(intercept) [lower bound = 4302.7439928, upper bound = 4535.5235074]
+We can be 95% confidence that the true average price of house per unit area, in the absense of any distance near metro rail transit, will fall in the range of $4302.7439928 to $4,535.52.
+
+95% Confidence interval for β (slope) [lower bound = -0.7650898, upper bound = -0.6252367]
+For each addition unit(meter) increase of distance to metro rail transits, house price per unit area is expected to decresed by 0.7650898 to 0.6252367.
+
+--- 
+
+###### v. Discuss the overall accuracy of the model (R2, residual standard error etc).
+
+From model summary output our Multiple R-squared value is 0.4816. 
+The 48.16% variation in house price can be explained by distance near metro rail transits. 
+
+Residual standard error: 911.9
+On average, the predicted values deviates from the true regression line by approzimately 911.9. The regression model predicts price with an average error of 911.9. 
+
+p-value of < 2.2e-16 is very small, indicating the variation that is explained by the predictor varaible is significant. 
+
+--- 
+
+###### vi. Check for the model assumptions.
+
+```{r}
+par(mfrow=c(2,2))
+plot(model1)
+```
+
+* Graph 1: Residual vs fitted
+  * reveals a non-linear pattern in the residual, indicating that the pattern is not entirely captured by the model.
+* Graph 2: Q-Q residuals 
+  * Appears to follow a straight pattern, concluding the assumption is met. 
+* Graph 3: Scale-location 
+  * Clusters are evident at certain location, indicating the residual variance is not constants. Not meeting the assumption of homoscedasticity and implies that the constant variance have not be met.
+* Graph 4: Residuals vs leverage 
+  * The data seems to be clusters at one location, but it does show that there are some outliers in datapoints.
+
+--- 
+
+###### vii. Write down the model equation.
+
+Price = Bo + B1 * distanceMRT 
+Price - represents the predicted house price per unit area, in USD, per square meters. 
+Bo - represents intercept, price when distanceMRT is 0. 
+B1 - represent slopes, coefficents. 
+
+--- 
+
+###### viii. Predict the unit price of a house which is 500 meters away from MRT using the model in part vii.
+
+Predicted price = 4419.13375+-0.69516*500 
+
+```{r}
+predicted_price <- predict(model1, list(distanceMRT=500))
+predicted_price 
+#using R studio to find our predicted price, if distanceMRT is 500.
+predicted_price_equation = 4419.13375+-0.69516*500 
+predicted_price_equation
+#using our model equation to find predictied price, returns a value of 4071.552. The predicted price of a house if it was 500 meters distance from metro rail transit is approximately, 4071.552. 
+```
+
+---
+
+#### Multiple Linear Regression
+
+###### i. Fit a model to predict price in terms of all the other variables in the dataset.
+
+```{r}
+model2 <- lm(price ~ age + year + distanceMRT + convstore, data = realestate)
+summary(model2)
+```
+
+###### ii. Remove insignificant variables (if there is any) and fit a model including the rest of the variables.
+
+transaction year has a large p-value, the large p-value indicates that changes in predictor is not associated with change in response and is insignificant, therefore we will remove this variable.  
+
+```{r}
+model2 <- lm(price ~ age + distanceMRT + convstore, data = realestate)
+summary(model2)
+```
+
+Refitting our model and removing transaction year, it is clear that the predictor varaibles, (age, distanceMRT, and convstore) are significant based on the p-value being below our significants level of 0.05. 
+
+---
+
+###### iii. Add the interaction term distanceMRT * convstore to the model above (part ii).
+```{r}
+model_interaction <- lm(price ~ age + distanceMRT + convstore + distanceMRT * convstore, data = realestate)
+summary(model_interaction)
+```
+
+---
+
+###### iv. Comment on the significance of the parameters of the model above (part iii).
+
+Age has a very small p-value of 8.85e-12, making it very significant. The coefficients that corresponds to age is (-23.91084),The negative co-efficient tells us that as the age of a house increases, the price will decrease.
+distanceMRT has a p-value of <2e-16, making it highly significant. The negative coefficient that corresponds to distanceMRT, indicates that as distanceMRT increases, price will decrease. 
+Convstore has a p-value of <2e-16, making it highly significant. The positive coefficient that corresponds to convstore (181.606), indicates that as the number of convenience stores in the living circle on foot increase, price will increase. 
+The interaction term has a negative co-efficient. With the interaction term we are combining two variables, to see if the effect are different. 
+1. If a house distance from metro rail transit is big, and has no convstore nearby, the price will be lower according to these two variables. 
+2. However if a house if far from the metro rail transit, and has nearby store, could the price be accommodated a bit better. 
+
+Since the co-efficient that corresponds to our interaction term is negative, we can conclude that the number of convenience stores in the living circle on foot the price will be a bit lower, compared to a house being far from distant rail transit with no convenience store in the living circle. 
+
+---
+
+###### v. Check for the model assumptions (model in part iii).
+
+```{r}
+model_interaction
+par(mfrow=c(2,2))
+plot(model_interaction)
+```
+Graph 1: 
+There are cluster of residuals in a certain spot, indicating that constant variance assumption is not met.
+Graph 2: Normal Q-Q plot
+Appears to be a straight line pattern, Therefore normality assumption is met.
+Graph 3: Scale-Location 
+Constant varaince is not met. 
+Graph 4: Residuals vs leverage. 
+There are clusters in certains spot, and shows some outliers. Certain observation have a influential effect on model parameters.
+
+---
+
+###### vi. Compare and comment on the accuracy of the models in part ii and part iii.
+
+Model 1 - 
+
+The adjusted squared value is 0.5858, the model explains about 58.58% of the variation in the dataset is explained by the model. 
+The residual standard eror is 817.1, this implies that on average, the predicted values deviate from the true regression line by 817.1. The F-statistic is 145.3, with a small p-value, meaning it has at least one predictor that has a significant effect on the responses of Price.
+
+Model 2 - including an interaction term between distanceMRT and convstore. 
+
+distanceMRT:convstore: The corresponding negative coefficient of -0.12822,indicates that the interaction has a negative effect on price. However the adjusted R-square value for this model is higher. Implying that 61.91% of the variation in the data set is explained by the model. 
+
+
+---
+
+#### Question 5 - Polynomial Regression and Transformations
+
+---
+
+###### i. Fit a polynomial regression model to predict price using distanceMRT of order 3 and test
+the model significance. Give the resulting model.
+
+```{r}
+poly_model1=lm(price~distanceMRT+I(distanceMRT*distanceMRT)+I(distanceMRT*distanceMRT*distanceMRT), data = realestate)
+summary(poly_model1)
+resulting_model <- 5.070e+03 + (-2.379 * distanceMRT) + (0.0006387 * distanceMRT^2) + (-5.787e-08 * distanceMRT^3)
+plot(resulting_model)
+```
+
+---
+
+###### ii. Construct a scatter plot to visualize the relationship between price and log transformed
+values of distanceMRT (price vs log(distanceMRT)).
+
+```{r}
+log_model <- plot(log(distanceMRT), price, main = "Log(distanceMRT) vs price")
+```
+
+---
+
+###### iii. Fit a model to predict price in terms of log(distanceMRT).
+```{r}
+prediction_model <- lm(price ~ log(distanceMRT), data = realestate)
+summary(prediction_model)
+```
+
+---
+
+###### iv. Plot the straight line (regression line) corresponding to part iii within the scatter plot in
+part ii (i.e., draw both the scatter plot and the fitted line on one plot).
+
+```{r}
+prediction_model <- lm(price ~ log(distanceMRT), data = realestate)
+#scatter plot from part ii.
+plot(log(distanceMRT), price, main = "Price vs Log(DistanceMRT)")
+
+#Regression line 
+abline(prediction_model, col = "blue")
+```
+
